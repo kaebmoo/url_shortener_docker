@@ -1,0 +1,5 @@
+Welcome to {{ config.APP_NAME }}!
+
+Your API Key: [Insert API Key]
+
+Please keep this key secure and confidential.

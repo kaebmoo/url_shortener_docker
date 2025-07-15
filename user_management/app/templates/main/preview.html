@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Screenshot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <style>
+        .screenshot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* จัดภาพให้อยู่ตรงกลางในแนวนอน */
+            margin-top: 20px;
+        }
+        .screenshot-container img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin-top: 10px; /* เพิ่มระยะห่างระหว่างข้อความ Warning กับภาพ */
+        }
+        .screenshot-details {
+            text-align: left;
+            width: 100%;
+            max-width: 800px; /* จำกัดความกว้างของข้อความ */
+            margin-top: 10px;
+        }
+        .screenshot-details p {
+            margin-top: 10px; /* เพิ่มระยะห่างระหว่างภาพกับ URL */
+        }
+    </style>
+</head>
+<body>
+    <div class="ui container">
+        <h1 class="ui red header">URL Safety Warning</h1>
+
+        <!-- Loading Indicator -->
+            <div id="loading" class="ui active inverted dimmer">
+                <div class="ui large text loader">Loading</div>
+            </div>
+        
+        <div id="content" style="display:none;">
+            <div class="ui red segment" id="result">
+                <!-- ผลลัพธ์จะถูกแทรกที่นี่ -->
+            </div>
+        </div>
+
+        <div id="error-message" class="ui message" style="display:none;"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // แสดง Loading Indicator ทันที
+            $('#loading').show();
+
+            // หน่วงเวลาเพื่อให้เบราว์เซอร์มีเวลาที่จะแสดง Loading Indicator
+            setTimeout(function() {
+                var url = "{{ url }}"; // URL ที่คุณต้องการตรวจสอบ
+                var csrfToken = "{{ csrf_token() }}"; // เพิ่ม CSRF token
+                
+                $.ajax({
+                    url: "{{ url_for('main.capture_screenshot_route') }}",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ url: url }),
+                    headers: {
+                        "X-CSRFToken": csrfToken // ส่ง CSRF token ไปกับ headers
+                    },
+                    success: function(response) {
+                        $('#loading').hide();
+                        $('#content').show();
+                        $('#result').html(
+                            '<div class="screenshot-container">' +
+                            '<div class="screenshot-details">' +
+                            '<h3 class="ui red header">Warning: This URL may be dangerous!</h3>' +
+                            '</div>' +
+                            '<img src="{{ url_for('static', filename='screenshots/') }}' + response.screenshot_path + '" alt="Screenshot of the URL">' +
+                            '<div class="screenshot-details"><p>URL: ' + response.url + '</p></div>' +
+                            '<div class="ui two buttons" style="margin-top: 20px;">' +
+                            '<a href="' + response.url + '" class="ui red button" target="_blank">Proceed with caution: Only visit this site if you\'re sure you understand the risks.</a>' +
+                            '<a href="{{ app_path }}" class="ui green button">Back to safety</a>' +
+                            '</div>' +
+                            '</div>'
+                        );
+                    },
+                    error: function(xhr, status, error) {
+                        $('#loading').hide();
+                        $('#error-message').show().text("An error occurred: " + xhr.responseJSON.error);
+                    }
+                });
+            }, 500); // หน่วงเวลา 500 มิลลิวินาที
+        });
+    </script>
+</body>
+</html>

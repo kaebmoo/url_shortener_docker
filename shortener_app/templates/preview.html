@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Screenshot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <style>
+        .ui.container {
+            margin-top: 50px;
+        }
+
+        .ui.form {
+            margin-bottom: 30px;
+        }
+
+        /* ขนาดสำหรับหน้าจอขนาดใหญ่ */
+        @media (min-width: 768px) {
+            .screenshot-container img {
+                max-width: 600px;
+            }
+        }
+
+        /* ขนาดสำหรับหน้าจอขนาดเล็ก (มือถือ) */
+        @media (max-width: 767px) {
+            .screenshot-container img {
+                max-width: 300px;
+            }
+        }
+
+        .screenshot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .screenshot-container img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin-top: 10px;
+        }
+        .screenshot-details {
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 10px;
+        }
+        .screenshot-details p {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ui container">
+        <!-- URL Safety Warning -->
+        <h1 class="ui black header">{{ heading_text_h1 }}</h1>
+        
+        <!-- แสดงข้อความ "Loading..." ก่อนที่ภาพจะถูกโหลด -->
+        <div id="loading-message" class="ui active dimmer">
+            <div class="ui text loader">Loading...</div>
+        </div>
+
+        <!-- ผลลัพธ์จะถูกแสดงที่นี่หลังจากโหลดเสร็จ -->
+        <div id="content" style="display:none;">
+            <div class="ui red segment" id="result">
+                <div class="screenshot-container">
+                    <div class="screenshot-details">
+                        <!-- Warning: This URL may be dangerous! -->
+                        <h3 class="ui red header">{{ heading_text_h3 }}</h3>
+                    </div>
+                    <img id="screenshot" src="{{ screenshot_path }}" alt="Screenshot of the URL" onload="hideLoadingMessage()" onerror="handleImageError()">
+                    <div class="screenshot-details">
+                        <p>URL: {{ url }}</p>
+                    </div>
+                    <div class="ui two buttons" style="margin-top: 20px;">
+                        <a href="{{ url }}" class="ui red button" target="_blank">
+                            Proceed with caution: Only visit this site if you're sure you understand the risks.
+                        </a>
+                        <a href="{{ app_path }}" class="ui green button">Back to safety</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function hideLoadingMessage() {
+            document.getElementById('loading-message').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        function handleImageError() {
+            // ซ่อน dimmer และแสดงข้อความข้อผิดพลาด
+            document.getElementById('loading-message').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            
+            // อัพเดทข้อความที่ต้องการแสดงเมื่อเกิดข้อผิดพลาด
+            document.getElementById('result').innerHTML = `
+                <div class="ui red message">
+                    <div class="header">Failed to load web page image.</div>
+                    <p>The destination host may not be reachable.</p>
+                </div>`;
+            
+            console.error('Error loading image at: ' + document.getElementById('screenshot').src);
+        }
+
+        window.addEventListener('load', function() {
+            var imgElement = document.getElementById('screenshot');
+            if (imgElement.complete && imgElement.naturalHeight !== 0) {
+                hideLoadingMessage();
+            }
+        });
+    </script>
+</body>
+</html>

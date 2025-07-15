@@ -1,0 +1,49 @@
+{% extends 'layouts/base.html' %}
+{% import 'macros/form_macros.html' as f %}
+{% import 'macros/check_password.html' as check %}
+
+{% block content %}
+    <div class="ui grid container">
+        <div class="eight wide computer sixteen wide mobile centered column">
+            <h2 class="ui dividing header">Enter OTP</h2>
+            <p>You have <span id="time">{{ time_remaining }}</span> seconds to confirm the OTP sent via SMS to the registered phone number.</p>
+            {% set flashes = {
+                'error':   get_flashed_messages(category_filter=['form-error']),
+                'warning': get_flashed_messages(category_filter=['form-check-email']),
+                'info':    get_flashed_messages(category_filter=['form-info']),
+                'success': get_flashed_messages(category_filter=['form-success'])
+            } %}
+
+            {{ f.begin_form(form, flashes) }}
+
+            {{ f.render_form(form) }}
+
+            {{ f.form_message(flashes['error'], header='Something went wrong.', class='error') }}
+            {{ f.form_message(flashes['warning'], header='Check your otp.', class='warning') }}
+            {{ f.form_message(flashes['info'], header='Information', class='info') }}
+            {{ f.form_message(flashes['success'], header='Success!', class='success') }}
+
+            {{ f.end_form(form) }}
+
+        </div>
+    </div>
+    <script>
+        // เริ่มต้นเวลาจากฝั่งเซิร์ฟเวอร์
+        var timeLeft = "{{ time_remaining }}";
+        var timerElement = document.getElementById('time');
+
+        // นับถอยหลัง
+        var countdown = setInterval(function() {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerElement.textContent = "0";
+                alert('The OTP has expired. Please request a new OTP.');
+                // พาผู้ใช้กลับไปยังหน้าก่อนหน้า
+                history.back();  
+            }
+        }, 1000);
+    </script>
+{% endblock %}

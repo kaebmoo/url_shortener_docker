@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Screenshot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <style>
+        .screenshot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* จัดภาพให้อยู่ตรงกลางในแนวนอน */
+            margin-top: 20px;
+        }
+        .screenshot-container img {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin-top: 10px; /* เพิ่มระยะห่างระหว่างข้อความ Warning กับภาพ */
+        }
+        .screenshot-details {
+            text-align: left;
+            width: 100%;
+            max-width: 800px; /* จำกัดความกว้างของข้อความ */
+            margin-top: 10px;
+        }
+        .screenshot-details p {
+            margin-top: 10px; /* เพิ่มระยะห่างระหว่างภาพกับ URL */
+        }
+    </style>
+</head>
+<body>
+    <div class="ui container">
+        <h1 class="ui red header">URL Safety Warning</h1>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="ui active inverted dimmer">
+            <div class="ui text loader">Processing...</div>
+        </div>
+
+        {% if screenshot %}
+        <div class="ui red segment">
+            <div class="screenshot-container">
+                <div class="screenshot-details">
+                    <h3 class="ui red header">Warning: This URL may be dangerous!</h3>
+                </div>
+                <img src="{{ url_for('static', filename='screenshots/' + screenshot) }}" alt="Screenshot of the URL">
+                <div class="screenshot-details">
+                    <p>URL: {{ url }}</p>
+                </div>
+                <div class="ui two buttons" style="margin-top: 20px;">
+                    <a href="{{ url }}" class="ui red button" target="_blank">
+                        Proceed with caution: Only visit this site if you're sure you understand the risks.
+                    </a>
+                    <a href="/" class="ui green button">Back to safety</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="ui message">
+            <p>No URL has been processed yet. Please provide a URL to check.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // เมื่อหน้าโหลดเสร็จแล้วให้ซ่อน Loading Indicator
+            $('#loading').hide();
+        });
+    </script>
+</body>
+</html>

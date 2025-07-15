@@ -1,0 +1,29 @@
+
+<table width="100%" style="max-width: 600px; margin: auto; background-color: #ffffff; border: 1px solid #dddddd; padding: 20px;">
+    <tr>
+        <td>
+            <h2 style="color: #333333;">Dear {{ user.full_name() }},</h2>
+            <p>Thank you for confirming your account with <strong>{{ config.APP_NAME }}</strong>! You now have full access to all the powerful features and services we offer.</p>
+            
+            <h3 style="color: #333333;">Get Started:</h3>
+            <p>To kickstart your journey, we have already prepared your API Key, which you can start using right away:</p>
+            <p style="font-size: 18px; color: #333333; background-color: #f9f9f9; padding: 10px; border: 1px solid #dddddd;">
+                <strong>API Key:</strong> [Insert the user's API Key]
+            </p>
+            <p>This key allows you to seamlessly integrate <strong>{{ config.APP_NAME }}</strong> into your projects, enabling you to create, manage, and monitor shortened URLs efficiently.</p>
+
+            <h3 style="color: #333333;">Explore & Learn:</h3>
+            <p>To help you get the most out of our platform, please refer to our comprehensive <a href="https://kaebmoo.com/redoc/" style="color: #1a73e8;" target="_blank">API documentation</a>. Here, you'll find everything you need to integrate <strong>{{ config.APP_NAME }}</strong> with ease.</p>
+
+            <h3 style="color: #333333;">Need Assistance?</h3>
+            <p>If you have any questions or need support, feel free to <a href="#" style="color: #1a73e8;">contact us</a> - we are here to help you every step of the way.</p>
+
+            <p>We hope you enjoy using <strong>{{ config.APP_NAME }}</strong> and look forward to seeing how it can help you achieve your goals.</p>
+            
+            <p>Sincerely,<br>The <strong>{{ config.APP_NAME }}</strong> Team</p>
+            
+            <p style="font-size: 14px; color: #aaaaaa;">Note: This is an automated email. Please do not reply.</p>
+        </td>
+    </tr>
+</table>
+

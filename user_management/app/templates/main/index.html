@@ -1,0 +1,30 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+    <div class="ui container">
+      <h1>Welcome, {% if not (current_user.is_authenticated) %} world {% else %} {{ current_user.full_name() }} {% endif %}</h1>
+      <h2>Share Your Links with Confidence!</h2>
+      {% if current_user.is_authenticated %}
+      <h2></h2>
+      
+      {% else %}
+      <!--
+        <p>This is <a href="http://hack4impact.org">Hack4Impact</a>'s web application template. We'll use this as a
+        foundation for each of our <a href="http://flask.pocoo.org">Flask</a> projects. The goal is to reduce the work
+        necessary to get a new project off the ground, by providing boilerplate code (such as account management
+        facilities), as well as uncontroversial and extensible defaults. We have integrated an
+        <a href="http://sass-lang.com">SCSS</a>-based asset pipeline based around a (fantastic!) framework
+        called <a href="http://semantic-ui.com">Semantic UI</a>. Much of this code is appropriated from the examples
+        in Miguel Grinberg's book, <a href="http://flaskbook.com"><em>Flask Web Development</em></a>.</p>
+      -->
+      <div class="ui container">
+      <p style="font-size: 1.2em;">This project is designed to make managing and sharing URLs simple and efficient. With features such as URL shortening, QR code generation, and secure management, it serves both personal and business needs effectively.</p>
+        <p style="font-size: 1.2em;">This project received funding from National Telecom in 2024, which has been instrumental in supporting its development and implementation.</p>
+        <p style="font-size: 1.2em;">To access these features, please register or log in.</p>
+      </div>
+      {% endif %}
+        <!---
+        <p>{{ lipsum(6) }}</p>
+        -->
+    </div>
+{% endblock %}

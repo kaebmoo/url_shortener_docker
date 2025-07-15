@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shorten URL</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <div class="ui container">
+        <h2 class="ui header">Shorten Your URL</h2>
+        <form id="shorten-url-form" class="ui form">
+            <div class="field">
+                <label for="target-url">Target URL</label>
+                <input type="text" id="target-url" placeholder="Enter the URL to shorten" required>
+            </div>
+            <button type="submit" class="ui primary button">Shorten</button>
+        </form>
+        
+        <div id="result" class="ui segment" style="display: none; margin-top: 20px;">
+            <h3>Shortened URL</h3>
+            <p>
+                <strong>Short URL:</strong> 
+                <a href="" id="short-url" target="_blank"></a>
+                <button id="copy-button" class="ui icon button tiny" data-tooltip="Copy to clipboard">
+                    <i class="copy icon"></i>
+                </button>
+            </p>
+            <p><strong>Target URL:</strong> <span id="result-target-url"></span></p>
+            <div id="additional-info">
+                <p><strong>Title:</strong> <span id="result-title"></span></p>
+                <p><strong>Favicon:</strong> <img id="result-favicon" src="" alt="Favicon" style="width: 16px; height: 16px;"></p>
+            </div>
+            <div>
+                <p><strong>Created At:</strong> <span id="created-at"></span></p>
+                <p><strong>Expires At:</strong> <span id="expires-at"></span></p>
+                <img id="qr-code" src="" alt="QR Code">
+            </div>
+            <p id="expiry-message" style="color: red; font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <!-- Floating message -->
+    <div id="copy-message" class="ui mini message" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        Copied to clipboard.
+    </div>
+
+    <script>
+        $('#shorten-url-form').on('submit', function(e) {
+            e.preventDefault();
+            let targetUrl = $('#target-url').val();
+
+            $.ajax({
+                url: window.location.origin + '/url/guest',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ target_url: targetUrl }),
+                success: function(response) {
+                    // Remove only the previous expiration message
+                    $('#expiry-message').empty();
+
+                    $('#short-url').text(response.url).attr('href', response.url);
+                    $('#result-target-url').text(response.target_url);
+
+                    if (response.title) {
+                        $('#result-title').text(response.title);
+                        $('#additional-info').show();
+                    } else {
+                        $('#additional-info').hide();
+                    }
+
+                    if (response.favicon_url) {
+                        $('#result-favicon').attr('src', response.favicon_url);
+                        $('#additional-info').show();
+                    } else {
+                        $('#result-favicon').attr('src', '');
+                    }
+
+                    // Convert PostgreSQL timestamp to ISO format
+                    let createdAtString = response.created_at.replace(' ', 'T');
+                    let createdAtUTC = new Date(createdAtString); // This will now parse the date correctly
+
+                    let expiresAtUTC = new Date(createdAtUTC);
+                    
+                    let createdAtLocal = new Date(createdAtUTC.getTime());
+                    let expiresAtLocal = new Date(expiresAtUTC.getTime());
+                    expiresAtLocal.setDate(expiresAtLocal.getDate() + 7);
+
+                    let createdAtLocalDate = createdAtLocal.toLocaleDateString();
+                    let expiresAtLocalDate = expiresAtLocal.toLocaleDateString();
+
+                    // กำหนดรูปแบบวันที่
+                    let options = { day: '2-digit', month: 'short', year: 'numeric' };
+                    let createdAtFormatted = new Intl.DateTimeFormat('en-GB', options).format(createdAtLocal);
+                    let expiresAtFormatted = new Intl.DateTimeFormat('en-GB', options).format(expiresAtLocal);
+
+                    // $('#created-at').text(createdAtLocalDate);
+                    // $('#expires-at').text(expiresAtLocalDate);
+                    
+                    //  บังคับรูปแบบ
+                    $('#created-at').text(createdAtFormatted);
+                    $('#expires-at').text(expiresAtFormatted);
+
+
+                    $('#qr-code').attr('src', response.qr_code);
+                    $('#result').show();
+
+                    // Append expiration message to the #expiry-message section
+                    $('#expiry-message').html(`
+                        <p><strong>Expires In:</strong> 7 days</p>
+                        <p>To prevent abuse, we automatically delete unclaimed links after 7 days. To claim this link, simply sign up for a free account.</p>
+                    `);
+
+                    $('#copy-button').off('click').on('click', function() {
+                        copyToClipboard(response.url);
+                    });
+                }
+
+            });
+        });
+
+        function copyToClipboard(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Show floating message
+            $('#copy-message').fadeIn();
+
+            // Hide the message after 3 seconds
+            setTimeout(function() {
+                $('#copy-message').fadeOut();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

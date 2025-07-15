@@ -1,0 +1,298 @@
+{% extends 'layouts/base.html' %}
+{% import 'macros/form_macros.html' as f %}
+
+{% block content %}
+    <div class="ui stackable grid container">
+        <div class="eighteen wide tablet fourteen wide computer centered column">
+            <a class="ui basic compact button" href="{{ url_for('admin.index') }}">
+                <i class="caret left icon"></i>
+                Back to dashboard
+            </a>
+            <h2 class="ui header">
+                URL Blacklist
+                <div class="sub header">Manage currently blacklisted URLs.</div>
+            </h2>
+
+            <!-- Flash Messages Section -->
+            {% set flashes = {
+                'error':   get_flashed_messages(category_filter=['form-error']),
+                'warning': get_flashed_messages(category_filter=['form-check-email']),
+                'info':    get_flashed_messages(category_filter=['form-info']),
+                'success': get_flashed_messages(category_filter=['form-success']),
+                'progress': get_flashed_messages(category_filter=['progress'])
+            } %}
+
+            {{ f.form_message(flashes['error'], header='Something went wrong.', class='error') }}
+            {{ f.form_message(flashes['warning'], header='Check your email.', class='warning') }}
+            {{ f.form_message(flashes['info'], header='Information', class='info') }}
+            {{ f.form_message(flashes['success'], header='Success!', class='success') }}
+
+
+
+            <!-- Section 1: Form to Add URL -->
+            <form id="add-url-form" class="ui form mt-4" method="POST" action="{{ url_for('admin.blacklist_add_url') }}">
+                {{ form.hidden_tag() }}
+                <div class="two fields">
+                    <div class="field">
+                        {{ form.url.label(class="ui label") }}
+                        {{ form.url(class="ui input") }}
+                    </div>
+                    <div class="field">
+                        {{ form.category.label(class="ui label") }}
+                        {{ form.category(class="ui input") }}
+                    </div>
+                </div>
+                <div class="two fields">
+                    <div class="field">
+                        {{ form.reason.label(class="ui label") }}
+                        {{ form.reason(class="ui input") }}
+                    </div>
+                    <div class="field">
+                        {{ form.source.label(class="ui label") }}
+                        {{ form.source(class="ui input") }}
+                    </div>
+                </div>
+                <button type="submit" class="ui primary button">Add URL</button>
+            </form>
+
+            <!-- Divider -->
+            <div class="ui horizontal divider" style="text-align: left;">
+                Import/Export Blacklist URLs
+            </div>
+
+            <!-- Progress bar section -->
+            <div class="ui progress" id="progress-bar" style="display: none;">
+                <div class="bar">
+                  <div class="progress"></div>
+                </div>
+                <div class="label"></div>
+              </div>
+
+            <!-- Section 2: Import and Export -->
+            <div class="ui centered grid mt-4">
+                <div class="eighteen wide column">
+                    <div class="ui segment" style="display: flex; align-items: center; justify-content: center;">
+                        <form id="import-form" class="ui form" method="POST" enctype="multipart/form-data" action="{{ url_for('admin.blacklist_import_data') }}">
+                            {{ import_form.hidden_tag() }}
+                            
+                            <label for="fileInput" class="ui primary button" style="display: flex; align-items: center; margin-right: 10px;">
+                                <i class="upload icon"></i> Upload .csv | .json
+                                <input type="file" name="file" id="fileInput" style="display: none;" onchange="this.form.submit();">
+                            </label>
+                        </form>
+                        
+                        <div class="ui buttons">
+                            <a class="ui button" href="{{ url_for('admin.blacklist_export_data', format='csv') }}">Export as CSV</a>
+                            <div class="or"></div>
+                            <a class="ui button" href="{{ url_for('admin.blacklist_export_data', format='json') }}">Export as JSON</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Divider -->
+            <div class="ui horizontal divider">
+                Search and Filter
+            </div>
+
+            <!-- Section 3: Search, Filter, Table, and Pagination -->
+            <div class="ui grid">
+                <div class="eight wide column">
+                    <!-- Search Form for Database -->
+                    <form id="search-form" class="ui action left icon input" action="{{ url_for('admin.blacklist_search') }}" method="get">
+                        <input type="text" name="query" placeholder="Search URLs in database..." value="{{ query }}">
+                        <button type="submit" class="ui button">Search</button>
+                    </form>
+                </div>
+
+                <div class="eight wide column right aligned">
+                    <!-- Filter Bar for Table -->
+                    <div class="ui right search item">
+                        <div class="ui transparent icon input">
+                            <input id="search-urls" type="text" placeholder="Filter URLs in table...">
+                            <i class="large filter icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Display with spacing from the search/filter bar -->
+            <div style="overflow-x: scroll; margin-top: 10px;">
+                <table class="ui searchable sortable unstackable selectable celled table">
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Category</th>
+                            <th>Date Added</th>
+                            <th>Reason</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for url in urls.items %}
+                        <tr id="row-{{ url.id }}" class="{% if url.id == highlight %}highlight{% endif %} {% if not url.status %}inactive{% endif %}">
+
+                            <td>{{ url.url }}</td>
+                            <td>{{ url.category }}</td>
+                            <td>{{ url.date_added }}</td>
+                            <td>{{ url.reason }}</td>
+                            <td>{{ url.source }}</td>
+                            <td>{{ 'Active' if url.status else 'Inactive' }}</td>
+                            <td>
+                                <div class="ui icon buttons">
+                                <a href="{{ url_for('admin.blacklist_toggle_status', id=url.id, page=request.args.get('page', 1)) }}"
+                                    class="ui icon button {{ 'green' if url.status else 'yellow' }}" 
+                                    title="Toggle Status">
+                                    <i class="{{ 'toggle on' if url.status else 'toggle off' }} icon"></i>
+                                </a> 
+ 
+                                <a href="{{ url_for('admin.blacklist_remove_url', id=url.id) }}" 
+                                    class="ui red icon button" 
+                                    onclick="return confirm('Are you sure you want to remove this URL?');" 
+                                    title="Remove">
+                                    <i class="trash icon"></i>
+                                </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="ui pagination menu">
+                {% if urls.has_prev %}
+                <a class="item" href="{{ url_for('admin.blacklist_search', query=query, page=urls.prev_num) }}">Previous</a>
+                {% endif %}
+                {% for page in urls.iter_pages() %}
+                    {% if page %}
+                        <a class="item {% if page == urls.page %}active{% endif %}" href="{{ url_for('admin.blacklist_search', query=query, page=page) }}">{{ page }}</a>
+                    {% else %}
+                        <span class="item disabled">...</span>
+                    {% endif %}
+                {% endfor %}
+                {% if urls.has_next %}
+                <a class="item" href="{{ url_for('admin.blacklist_search', query=query, page=urls.next_num) }}">Next</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            // Filter functionality for the table
+            $('#search-urls').keyup(function () {
+                var searchText = $(this).val();
+                if (searchText.length > 0) {
+                    $('tbody td:icontains(' + searchText + ')').addClass('positive');
+                    $('td.positive').not(':icontains(' + searchText + ')').removeClass('positive');
+                    $('tbody td').not(':icontains(' + searchText + ')').closest('tr').addClass('hidden').hide();
+                    $('tr.hidden:icontains(' + searchText + ')').removeClass('hidden').show();
+                } else {
+                    $('td.positive').removeClass('positive');
+                    $('tr.hidden').removeClass('hidden').show();
+                }
+            });
+        
+            // File upload and progress tracking
+            const fileInput = document.getElementById('fileInput');
+            const progressBar = document.getElementById('progress-bar');
+            const form = document.getElementById('import-form');
+        
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    progressBar.style.display = 'block';
+                    startListening();
+                    form.submit();
+                }
+            });
+        
+            function updateProgressBar(percentage) {
+                const bar = progressBar.querySelector('.bar');
+                const progressText = progressBar.querySelector('.progress');
+                
+                const percentageValue = percentage + '%';  // แปลงค่าเป็นเปอร์เซ็นต์
+                bar.style.width = percentageValue;  // อัปเดตความกว้างของ progress bar
+                progressText.textContent = percentageValue;  // แสดงผล % บน bar
+            }
+
+
+        
+            function startListening() {
+                const eventSource = new EventSource("{{ url_for('sse.stream') }}");
+                console.log("เรียกใช้งาน sse.stream")
+
+                eventSource.addEventListener('progress', function(event) {
+                    const data = JSON.parse(event.data);
+                    const label = document.querySelector('#progress-bar .label');
+                    const count = data.count;
+                    const totalRows = data.total_rows;
+
+                    if (data.message === 'complete') {
+                        eventSource.close();
+                        progressBar.style.display = 'none';
+                        window.location.assign("{{ url_for('admin.blacklist') }}");
+                    } else if (typeof data.message === 'string' && data.message.startsWith('error:')) {
+                        eventSource.close();
+                        alert('Error: ' + data.message);
+                        progressBar.style.display = 'none';
+                    } else if (!isNaN(parseInt(data.message, 10))) {
+                        label.textContent = `${count}/${totalRows} row(s)`;
+                        updateProgressBar(parseInt(data.message, 10));
+                    } else {
+                        console.error('Invalid data:', data);
+                    }
+                });
+
+                eventSource.onerror = function() {
+                    console.error('EventSource failed. Reconnecting...');
+                    eventSource.close();
+                    setTimeout(startListening, 3000);  // Retry connection after 3 seconds
+                };
+            }
+
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const highlightId = "{{ highlight }}";
+            if (highlightId) {
+                const row = document.getElementById(`row-${highlightId}`);
+                if (row) {
+                    const offset = -100; // ระยะห่างจากด้านบน
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = row.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition + offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    row.classList.add('flash-highlight');
+                    setTimeout(() => row.classList.remove('flash-highlight'), 2000);
+                }
+            }
+        });
+
+    </script>
+<style>
+    .flash-highlight {
+        animation: highlightAnimation 2s ease-out;
+    }
+
+    @keyframes highlightAnimation {
+        0% {
+            background-color: #ffff99;
+        }
+        100% {
+            background-color: transparent;
+        }
+    }
+</style>
+{% endblock %}

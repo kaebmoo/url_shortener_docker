@@ -1,0 +1,271 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+<div class="ui container">
+    <!--
+    <h1>Welcome, {% if not (current_user.is_authenticated) %} world {% else %} {{ current_user.full_name() }} {% endif %}</h1>
+    -->
+    {% if current_user.is_authenticated %}
+    <h2>Total Shortened URLs: {{ url_count }} 
+        (<i class="check circle icon" style="color: green; font-size: 24px;" title="This is safe"></i>=SAFE, 
+        <i class="exclamation triangle icon" style="color: red; font-size: 24px;" title="This is dangerous"></i>=DANGER)
+    </h2>
+    <h3>Membership Type: Basic</h3>
+    <div class="ui segment">
+        <div class="ui menu">
+            <div class="ui right search item">
+                <div class="ui transparent icon input">
+                    <input id="search-urls" type="text" placeholder="Search urls…">
+                    <i class="search icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="ui scrolling container">
+            <table class="ui searchable sortable unstackable selectable celled table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Target URL</th>
+                        <th style="width: 20%;">Shortened URL</th>
+                        <th style="width: 5%;">Clicks</th>
+                        <th style="width: 10%;">Created At</th>
+                        <th style="width: 10%;">Updated At</th>
+                        <th>Status</th>
+                        <th style="width: 10%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for url in user_urls | sort(attribute='created_at', reverse=True)%}
+                    {% set status = url.status if url.status else '' %}
+                    <tr id="row-{{ url.key }}" {% if status and status.upper() == 'DANGER' %} style="background-color: #ffcccc;" {% endif %}>
+                        <td style="width: 35%;">
+                            <div style="display: flex; align-items: center;">
+                                <img src="https://www.google.com/s2/favicons?sz=32&domain={{ url.target_url }}" alt="Favicon" style="margin-right: 8px; width: 32px; height: 32px;">
+                                <small>{{ url.title }}</small>
+                            </div>
+                            <br>
+                            {% if status and status.upper() != 'DANGER' %}
+                                <a href="{{ url.target_url }}" target="_blank" title="{{ url.target_url }}">{{ url.target_url }}</a>
+                            {% else %}
+                                <a href="{{ asset_path }}/preview_url?url={{ url.target_url }}" target="_blank">{{ url.target_url }}</a>
+                            {% endif %}
+                        </td>
+                        <td style="width: 20%;">
+                            {% if status and status.upper() != 'DANGER' %}
+                                <a href="{{ shortener_host_name }}/{{ url.key }}" target="_blank">{{ shortener_host_name }}/{{ url.key }}</a>
+                            {% else %}
+                                <a href="{{ shortener_host_name }}/{{ url.key }}" target="_blank">{{ shortener_host_name }}/{{ url.key }}</a>
+                            {% endif %}
+                        </td>
+                        <td style="width: 5%;">{{ url.clicks }}</td>
+                        <td style="width: 10%;" class="created-at" data-datetime="{{ url.created_at }}">{{ url.created_at }}</td>
+                        <td style="width: 10%;" class="updated-at" data-datetime="{{ url.updated_at }}">{{ url.updated_at }}</td>
+                        <td style="white-space: nowrap;">
+                            {% if status.upper() == 'SAFE' %}
+                                <i class="check circle icon" style="color: green; font-size: 24px;" title="This is safe"></i>
+                            {% elif status.upper() == 'DANGER' %}
+                                <i class="exclamation triangle icon" style="color: red; font-size: 24px;" title="This is dangerous"></i>
+                            {% else %}
+                                {{ status.upper() }}
+                            {% endif %}
+                        </td>
+                        <td style="width: 10%;">
+                            <div class="ui buttons" style="margin-bottom: 10px;">
+                                <button class="ui icon button copy-button" data-url="{{ shortener_host_name }}/{{ url.key }}" style="margin-right: 3px;" title="Copy URL to clipboard">
+                                    <i class="copy icon"></i>
+                                </button>
+                                <button class="ui icon button qr-button" host-url="{{ app_host_name }}{{ app_path }}" data-url="{{ shortener_host_name }}/{{ url.key }}" style="margin-right: 3px;" title="Generate and download QR code">
+                                    <i class="qrcode icon"></i>
+                                </button>
+                                <button class="ui icon button toggle-scan-button" style="margin-right: 3px;" title="Scan Results">
+                                    <i class="eye icon"></i>
+                                </button>
+                                <form method="post" action="{{ url_for('main.user') }}#row-{{ url.key }}" class="info-form" style="display: none;">
+                                    <!-- Information Button -->
+                                    {{ url_action_form.csrf_token }}
+                                    <input type="hidden" name="url_secret_key" value="{{ url.secret_key }}">
+                                    <input type="hidden" name="target_url" value="{{ url.target_url }}">
+                                    <button type="submit" name="submit_info" class="ui icon button"></button>
+                                </form>
+                                
+                                <form method="post" action="{{ url_for('main.user') }}" class="delete-form" style="display: inline;" title="Delete this URL">
+                                    {{ url_action_form.csrf_token }}
+                                    <input type="hidden" name="url_secret_key" value="{{ url.secret_key }}">
+                                    <input type="hidden" name="target_url" value="{{ url.target_url }}">
+                                    <input type="hidden" name="submit_delete" value="1"> 
+                                    <button type="submit" name="submit_delete" class="ui icon button delete-button" host-url="{{ app_host_name }}{{ app_path }}">
+                                        <i class="trash icon"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="qr-code-display" style="display:none; margin-top:10px;">
+                                <img src="" alt="QR Code" class="qr-code-img" style="max-width: 70px; max-height: 70px;">
+                                <br>
+                                <a href="" download="qrcode.png" class="download-qr-code">Download QR</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% if url.scan_results %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="ui segment">
+                                <h4>Scan Results</h4>
+                                <table class="ui celled table">
+                                    <thead>
+                                        <tr>
+                                            <th>Result</th>
+                                            <th>Scan Type</th>
+                                            <th>Last Scanned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for result in url.scan_results[0] %}
+                                        <tr>
+                                            <td>{{ result.result }}</td>
+                                            <td>{{ result.scan_type }}</td>
+                                            <td>{{ result.timestamp }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if qr_code_base64 %}
+    <div class="ui segment">
+        <h2>QR Code</h2>
+        <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code">
+    </div>
+    {% endif %}
+    {% else %}
+    <p>This is <a href="http://hack4impact.org">Hack4Impact</a>'s web application template. We'll use this as a
+        foundation for each of our <a href="http://flask.pocoo.org">Flask</a> projects. The goal is to reduce the work
+        necessary to get a new project off the ground, by providing boilerplate code (such as account management
+        facilities), as well as uncontroversial and extensible defaults. We have integrated an
+        <a href="http://sass-lang.com">SCSS</a>-based asset pipeline based around a (fantastic!) framework
+        called <a href="http://semantic-ui.com">Semantic UI</a>. Much of this code is appropriated from the examples
+        in Miguel Grinberg's book, <a href="http://flaskbook.com"><em>Flask Web Development</em></a>.</p>
+    {% endif %}
+</div>
+
+<style>
+    /* เพิ่ม CSS นี้ในไฟล์ base.html หรือไฟล์ CSS ที่เกี่ยวข้อง */
+    .ui.celled.table {
+        width: 100%; /* ให้ตารางใช้ความกว้างเต็มของคอนเทนเนอร์ */
+    }
+
+    .ui.celled.table td {
+        max-width: 200px; /* หรือขนาดอื่นๆ ที่เหมาะสม */
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        word-break: break-all; /* อนุญาตให้ตัดคำได้ */
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Toggle Scan Results
+        document.querySelectorAll('.toggle-scan-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const row = this.closest('tr');
+                const scanResultsRow = row.nextElementSibling;
+                const infoForm = this.closest('td').querySelector('.info-form');
+
+                if (scanResultsRow && scanResultsRow.querySelector('.ui.segment')) {
+                    const isVisible = scanResultsRow.style.display !== 'none';
+                    scanResultsRow.style.display = isVisible ? 'none' : '';
+                } else {
+                    // If no scan results, trigger the info form to fetch results
+                    infoForm.querySelector('button[type="submit"]').click();
+                }
+            });
+        });
+
+        // Copy URL to clipboard
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Copied to clipboard: ' + url);
+                });
+            });
+        });
+
+        // Generate and display QR code
+        document.querySelectorAll('.qr-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                const qrDisplay = this.parentElement.nextElementSibling;
+                const qrImage = qrDisplay.querySelector('.qr-code-img');
+                const downloadLink = qrDisplay.querySelector('.download-qr-code');
+                const hostUrl = this.getAttribute('host-url');
+
+                if (qrImage.src && qrImage.src.includes('base64,')) {
+                    // Toggle visibility if QR code is already generated
+                    const isVisible = qrDisplay.style.display !== 'none';
+                    qrDisplay.style.display = isVisible ? 'none' : 'block';
+                }
+                else {
+                    fetch(`${hostUrl}generate_qr_code?data=${encodeURIComponent(url)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            qrImage.src = 'data:image/png;base64,' + data.qr_code;
+                            downloadLink.href = qrImage.src;
+                            qrDisplay.style.display = 'block';
+                        });
+                }
+            });
+        });
+
+        // Confirm delete URL
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                if (confirm('Are you sure you want to delete this URL?')) {
+                    this.closest('form').submit();
+                }
+            });
+        });
+
+        // Scroll to hash on page load
+        if (window.location.hash) {
+            setTimeout(function() {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    const yOffset = -50; // Adjust this value to your needs
+                    const yPosition = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+                    window.scrollTo({ top: yPosition, behavior: 'smooth' });
+                }
+            }, 100); // You can adjust this delay if needed
+        }
+    });
+
+    $(document).ready(function () {
+        $('#search-urls').keyup(function () {
+            var searchText = $(this).val();
+            if (searchText.length > 0) {
+                $('tbody td:icontains(' + searchText + ')').addClass('positive');
+                $('td.positive').not(':icontains(' + searchText + ')').removeClass('positive');
+                $('tbody td').not(':icontains(' + searchText + ')').closest('tr').addClass('hidden').hide();
+                $('tr.hidden:icontains(' + searchText + ')').removeClass('hidden').show();
+            } else {
+                $('td.positive').removeClass('positive');
+                $('tr.hidden').removeClass('hidden').show();
+            }
+        });
+
+        $('#select-role').dropdown({
+            onChange: function (value, text, $selectedItem) {
+                $('td.user.role:contains(' + value + ')').closest('tr').removeClass('hidden').show();
+                $('td.user.role').not(':contains(' + value + ')').closest('tr').addClass('hidden').hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

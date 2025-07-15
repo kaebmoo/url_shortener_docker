@@ -1,0 +1,21 @@
+.ui.container {
+    margin-top: 50px;
+}
+
+.ui.form {
+    margin-bottom: 30px;
+}
+
+/* ขนาดสำหรับหน้าจอขนาดใหญ่ */
+@media (min-width: 768px) {
+    .screenshot-container img {
+        max-width: 600px;
+    }
+}
+
+/* ขนาดสำหรับหน้าจอขนาดเล็ก (มือถือ) */
+@media (max-width: 767px) {
+    .screenshot-container img {
+        max-width: 300px;
+    }
+}

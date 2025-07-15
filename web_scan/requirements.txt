@@ -1,0 +1,9 @@
+aiohttp
+google-cloud
+google-api-core
+google-cloud-webrisk
+vt-py
+pandas
+psycopg2-binary
+SQLAlchemy
+python-dotenv

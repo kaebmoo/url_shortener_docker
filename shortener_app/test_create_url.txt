@@ -1,0 +1,24 @@
+```                               
+    project_root/              
+    │                          
+    └── shortener_app/         
+        │   models.py          
+        │   database.py        
+        │   main.py            
+        │                      
+        └─── alembic/          
+                 env.py        
+                 script.py.    
+                 versions/     
+```                               
+
+
+curl -X 'POST' 'http://127.0.0.1:8000/url' -H 'accept: application/json'  -H 'Content-Type: application/json'  -H 'X-API-KEY: 41b7beeef9e043a9986caba296aaf49f'   -d '{  "target_url": "https://tinyurl.com/"}'
+
+
+curl -X 'POST' 'http://127.0.0.1:8000/url' -H 'accept: application/json'  -H 'Content-Type: application/json'  -H 'X-API-KEY: xxx'   -d '{  "target_url": "https://idl.uw.edu/arquero/"}'
+
+Looks like this destination is already used for another short link. 
+
+curl -X POST "http://127.0.0.1:8000/url" -H "Content-Type: application/json" -H "X-API-KEY: 6a1fe3df51a34de6b703ac78fa91e375" -d '{  "target_url": "https://www.example.com",  "custom_key": "mycustomkey"}'
+

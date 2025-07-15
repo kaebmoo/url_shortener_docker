@@ -1,0 +1,4 @@
+
+web: gunicorn --worker-class gevent --bind 127.0.0.1:5000 wsgi:app
+Example: gunicorn main:app --worker-class gevent --bind 127.0.0.1:5000
+worker: python -u manage.py run_worker

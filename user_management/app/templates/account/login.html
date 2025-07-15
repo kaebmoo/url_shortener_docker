@@ -1,0 +1,89 @@
+{% extends 'layouts/base.html' %}
+{% import 'macros/form_macros.html' as f %}
+
+{% block content %}
+    <div class="ui grid container">
+        <div class="eight wide computer sixteen wide mobile centered column">
+            <h2 class="ui dividing header">Log in</h2>
+
+            {% set flashes = {
+                'error':   get_flashed_messages(category_filter=['form-error']),
+                'warning': get_flashed_messages(category_filter=['form-check-email']),
+                'info':    get_flashed_messages(category_filter=['form-info']),
+                'success': get_flashed_messages(category_filter=['form-success'])
+            } %}
+
+            {{ f.begin_form(form, flashes) }}
+                <div class="field">
+                    <label>Login with:</label>
+                    <div class="inline fields">
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="login_method" value="email" checked="checked">
+                                <label>Email</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input type="radio" name="login_method" value="phone">
+                                <label>Phone</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="email_field">
+                    {{ f.render_form_field(form.email) }}
+                </div>
+                <div id="phone_field" style="display: none;">
+                    {{ f.render_form_field(form.phone_number) }}
+                </div>
+
+                {{ f.render_form_field(form.password) }}
+                <div class="ui two column grid">
+                    {{ f.render_form_field(form.remember_me, extra_classes='column') }}
+                    <div class="right aligned column">
+                        <a href="{{ url_for('account.reset_password_request') }}">Forgot password?</a>
+                    </div>
+                </div>
+
+                {{ f.form_message(flashes['error'], header='Something went wrong.', class='error') }}
+                {{ f.form_message(flashes['warning'], header='Check your email.', class='warning') }}
+                {{ f.form_message(flashes['info'], header='Information', class='info') }}
+                {{ f.form_message(flashes['success'], header='Success!', class='success') }}
+
+                {{ f.render_form_field(form.submit) }}
+            {{ f.end_form(form) }}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var emailField = document.getElementById('email_field');
+            var phoneField = document.getElementById('phone_field');
+            var emailInput = document.querySelector('input[name="email"]');
+            var phoneInput = document.querySelector('input[name="phone_number"]');
+            var loginMethodRadios = document.getElementsByName('login_method');
+
+            function toggleLoginFields() {
+                if (document.querySelector('input[name="login_method"]:checked').value === 'email') {
+                    emailField.style.display = 'block';
+                    phoneField.style.display = 'none';
+                    emailInput.disabled = false;
+                    phoneInput.disabled = true;
+                } else {
+                    emailField.style.display = 'none';
+                    phoneField.style.display = 'block';
+                    emailInput.disabled = true;
+                    phoneInput.disabled = false;
+                }
+            }
+
+            loginMethodRadios.forEach(function (radio) {
+                radio.addEventListener('change', toggleLoginFields);
+            });
+
+            toggleLoginFields(); // Initial call to set the correct fields on page load
+        });
+    </script>
+{% endblock %}

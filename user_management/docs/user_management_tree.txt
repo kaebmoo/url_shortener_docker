@@ -1,0 +1,53 @@
+└── user_management
+    ├── Procfile
+    ├── app
+    │   ├── __init__.py
+    │   ├── __pycache__
+    │   ├── account
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   ├── forms.py
+    │   │   └── views.py
+    │   ├── admin
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   ├── forms.py
+    │   │   └── views.py
+    │   ├── assets
+    │   │   ├── scripts
+    │   │   └── styles
+    │   ├── assets.py
+    │   ├── decorators.py
+    │   ├── email.py
+    │   ├── infobip_sms.py
+    │   ├── main
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   ├── errors.py
+    │   │   ├── forms.py
+    │   │   └── views.py
+    │   ├── models
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   ├── miscellaneous.py
+    │   │   └── user.py
+    │   ├── sms.py
+    │   ├── static
+    │   │   ├── ckeditor
+    │   │   ├── fonts
+    │   │   ├── images
+    │   │   └── styles
+    │   ├── templates
+    │   │   ├── account
+    │   │   ├── admin
+    │   │   ├── errors
+    │   │   ├── layouts
+    │   │   ├── macros
+    │   │   ├── main
+    │   │   └── partials
+    │   └── utils.py
+    ├── config.py
+    ├── manage.py
+    ├── notes.txt
+    ├── phone_otp.md
+    └── requirements.txt

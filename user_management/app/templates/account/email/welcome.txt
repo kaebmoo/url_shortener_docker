@@ -1,0 +1,32 @@
+Subject: Welcome to {{ config.APP_NAME }} – Your Account is Confirmed!
+
+Dear {{ user.full_name() }},
+
+Thank you for confirming your account with {{ config.APP_NAME }}! You now have full access to all the powerful features and services we offer.
+
+Get Started:
+
+To kickstart your journey, we’ve already prepared your API Key, which you can start using right away:
+
+API Key: [Insert the user's API Key]
+
+This key allows you to seamlessly integrate {{ config.APP_NAME }} into your projects, enabling you to create, manage, and monitor shortened URLs efficiently.
+
+Explore & Learn:
+
+To help you get the most out of our platform, please refer to our comprehensive [API documentation](https://kaebmoo.com/redoc/). Here, you'll find everything you need to integrate {{ config.APP_NAME }} with ease.
+
+Need Assistance?
+
+If you have any questions or need support, feel free to [contact us](#) – we’re here to help you every step of the way.
+
+We hope you enjoy using {{ config.APP_NAME }} and look forward to seeing how it can help you achieve your goals.
+
+Sincerely,  
+The {{ config.APP_NAME }} Team
+
+---
+
+*Note: This is an automated email. Please do not reply.*
+
+---
