@@ -94,7 +94,9 @@ HYBRID_ANALYSIS_API_KEY=your-hybrid-analysis-api-key
 
 ค้นหาบรรทัดที่มี code นี้ (ประมาณบรรทัดที่ 139)
 
-```python credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-project-744419703652-f520f5308dff.json")```
+```python
+credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-project-744419703652-f520f5308dff.json")
+```
 
 แล้วเปลี่ยนชื่อเป็นชื่อไฟล์ ```api-project-744419703652-f520f5308dff.json``` เป็นไฟล์ที่ได้จาก Google Cloud Platform 
 
