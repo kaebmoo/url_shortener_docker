@@ -11,8 +11,9 @@ from .. import db, login_manager
 
 class Permission:
     GENERAL = 0x01
-    ADMINISTER = 0xff
     VIP = 0x02
+    ADMINISTER = 0xff
+    
 
 
 class Role(db.Model):
@@ -28,6 +29,7 @@ class Role(db.Model):
     def insert_roles():
         roles = {
             'User': (Permission.GENERAL, 'main', True),
+            'VIP': (Permission.VIP, 'main', False),
             'Administrator': (
                 Permission.ADMINISTER,
                 'admin',

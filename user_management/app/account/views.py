@@ -1,4 +1,5 @@
 """ User management: register new user, password, email, phone, register confirm """
+# user_management/app/account/views.py
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for, session, current_app
 from flask_login import current_user, login_required, login_user, logout_user

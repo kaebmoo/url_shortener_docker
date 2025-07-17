@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# user_management/manage.py
 import os
 import subprocess
 import uuid
@@ -7,6 +8,7 @@ import uuid
 from flask_migrate import Migrate  # from flask_migrate import Migrate, MigrateCommand
 import click
 from flask import Flask, cli
+from flask.cli import with_appcontext
 from redis import Redis
 from rq import Connection, Queue, Worker
 from rq.exceptions import NoSuchJobError  # Import the exception
@@ -14,6 +16,7 @@ from app import create_app, db, socketio
 from app.models import Role, User
 from app.models.miscellaneous import EditableHTML
 from config import Config
+from app.apicall import register_api_key_from_script
 
 import logging
 
@@ -40,6 +43,49 @@ def inject_asset_path():
 def make_shell_context():
     return {'db': db, 'User': User, 'Role': Role, 'EditableHTML': EditableHTML}
 
+@app.cli.command("seed")
+@with_appcontext  # 👈 เพิ่ม decorator นี้เข้าไป
+def seed():
+    """Seeds the database with initial data and syncs with other services via API."""
+    
+    print("--- 1. Seeding user_management database ---")
+    
+    Role.insert_roles()
+    print("Roles inserted successfully.")
+
+    admin_user = User.query.filter_by(email=app.config['ADMIN_EMAIL']).first()
+    if not admin_user:
+        admin_role = Role.query.filter_by(name='Administrator').first()
+        if admin_role:
+            uid = uuid.uuid4().hex
+            admin_user = User(
+                first_name='Admin',
+                last_name='Account',
+                password=app.config['ADMIN_PASSWORD'],
+                confirmed=True,
+                email=app.config['ADMIN_EMAIL'],
+                role=admin_role,
+                uid=uid
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+            print(f"Admin user '{admin_user.email}' created successfully.")
+        else:
+            print("Error: Administrator role not found.")
+            return
+    else:
+        print("Admin user already exists.")
+
+    if admin_user:
+        print(f"--- 2. Syncing admin API key to shortener_app ---")
+        try:
+            # ตอนนี้โค้ดข้างใน apicall.py จะสามารถเข้าถึง current_app.config ได้แล้ว
+            result, status_code = register_api_key_from_script(admin_user.uid, admin_user.role_id)
+            print(f"API call to register key result: {result} (Status: {status_code})")
+        except Exception as e:
+            print(f"An error occurred while calling register_api_key API: {e}")
+    
+    print("--- Seeding process finished ---")
 
 @app.cli.command("test")
 def test():

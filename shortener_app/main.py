@@ -61,6 +61,12 @@ import schemas
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ''' Startup: Seed roles and fetch phishing URLs '''
+    print("SHORTENER_APP: Running startup tasks...")
+    
+    with SessionAPI() as db:
+        crud.insert_roles(db)
+
     ''' Startup: Fetch phishing URLs '''
     # Startup: Fetch phishing URLs
     phishing_data.fetch_phishing_urls()  # เรียกใช้งาน fetch_phishing_urls จากอินสแตนซ์ของ PhishingData
@@ -96,7 +102,6 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
-# templates = Jinja2Templates(directory="shortener_app/templates")
 templates = Jinja2Templates(directory="templates")
 
 # Mount the static files directory

@@ -4,9 +4,12 @@
 from flask import current_app, session
 from flask_login import current_user
 
+import requests
+import os
 import jwt
 from datetime import datetime, timedelta, timezone
-import requests
+
+
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
@@ -60,6 +63,7 @@ def send_api_key_to_register(api_key: str, role_id: int):
     # don't call this function directly, please call register_api_key()
     url = current_app.config['SHORTENER_HOST'] + "/api/register_api_key"
     access_token = session.get('access_token')
+    
     if not access_token:
         # Handle the case where access_token is missing, such as re-login
         access_token = create_jwt_token()
@@ -174,3 +178,56 @@ def get_url_scan_status(secret_key: str, api_key: str, target_url: str, scan_typ
     except requests.exceptions.RequestException as e:
         # Return error message and a status code indicating request failure
         return {"error": "Request failed."}, 500
+
+def _create_jwt_for_script():
+    """
+    ฟังก์ชัน helper สำหรับสร้าง JWT โดยเฉพาะสำหรับ script
+    จะอ่านค่าจาก Environment Variables โดยตรง
+    """
+    secret_key = os.environ.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY is not set in environment variables")
+
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": 'user_management', 
+        "iat": now,
+        "exp": now + timedelta(minutes=5) # Token มีอายุสั้นๆ แค่ 5 นาที
+    }
+    return jwt.encode(payload, secret_key, algorithm="HS256")
+
+
+def register_api_key_from_script(uid: str, role_id: int):
+    """
+    ฟังก์ชันสำหรับยิง API จาก script โดยเฉพาะ (ไม่ใช้ session/current_app)
+    """
+    shortener_host = os.environ.get('SHORTENER_HOST')
+    if not shortener_host:
+        raise ValueError("SHORTENER_HOST is not set in environment variables")
+
+    endpoint = f"{shortener_host}/api/register_api_key"
+    
+    # สร้าง Token ใหม่สำหรับ request นี้โดยเฉพาะ
+    access_token = _create_jwt_for_script()
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+    
+    payload = {
+        "api_key": uid,
+        "role_id": role_id
+    }
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+        print("API call successful.")
+        return response.json(), response.status_code
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to call register_api_key: {e}")
+        # พยายาม print response ที่ได้กลับมาเพื่อ debug
+        if e.response is not None:
+            print(f"Response Body: {e.response.text}")
+        return {"error": str(e)}, 500

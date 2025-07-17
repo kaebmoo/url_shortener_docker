@@ -24,6 +24,26 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+def insert_roles(db: Session):
+    """
+    Creates initial roles in the apikey database if they don't exist.
+    """
+    # ID และชื่อต้องตรงกับฝั่ง user_management ทุกประการ
+    roles_to_create = {
+        1: 'User',
+        2: 'Administrator',
+        3: 'VIP'
+    }
+    
+    for role_id, role_name in roles_to_create.items():
+        db_role = db.query(models.Role).filter(models.Role.id == role_id).first()
+        if not db_role:
+            new_role = models.Role(id=role_id, name=role_name)
+            db.add(new_role)
+    
+    db.commit()
+    print("APIKEY DB: Roles are seeded.")
+    
 def create_db_url(db: Session, url: schemas.URLBase, api_key: str) -> models.URL:
     ''' create short url  '''
     # key = keygen.create_random_key()
