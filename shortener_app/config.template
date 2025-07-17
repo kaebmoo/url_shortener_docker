@@ -1,0 +1,21 @@
+# shortener_app/config.env
+ENV_NAME=Production
+BASE_URL=https://yourdomain.com
+HOST=0.0.0.0
+PORT=8000
+# DB_URL=sqlite:///./shortener.db
+# DB_API=sqlite:////Users/seal/Documents/GitHub/url_shortener/apikey.db
+# DB_BLACKLIST=sqlite:////Users/seal/Documents/GitHub/short_url_tools/tools/web_scan/url_blacklist/blacklist.db
+
+# DB_URL=postgresql+psycopg2://username:password@host.docker.internal:5432/shortener
+# DB_API=postgresql+psycopg2://username:password@host.docker.internal:5432/apikey
+# DB_BLACKLIST=postgresql+psycopg2://username:password@host.docker.internal:5432/blacklist
+
+DB_URL=postgresql+psycopg2://myadminuser:mysecretpassword@db/shortener
+DB_API=postgresql+psycopg2://myadminuser:mysecretpassword@db/apikey
+DB_BLACKLIST=postgresql+psycopg2://myadminuser:mysecretpassword@db/blacklist
+
+SECRET_KEY=your-secret-key-here-generate-new-one
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+USE_API_DB=False  # ใช้กำหนดว่าจะให้ตรวจ role_id หรือไม่ สำหรับการทำ custom key, ยังไม่ได้ใช้งาน โปรแกรมตรวจ role_id เสมอ
+SAFE_HOST=https://yourdomain.com/apps # ใช้กำหนด host ที่จะให้เปิดแทน กรณีที่ url = "DANGER" 

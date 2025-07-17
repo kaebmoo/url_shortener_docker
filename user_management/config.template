@@ -1,0 +1,48 @@
+# user_management/config.env
+
+FLASK_CONFIG=production
+APP_NAME=URL Shortener
+SECRET_KEY=your-secret-key-here-generate-new-one
+
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=your-secure-admin-password
+
+sendgrid_api_key=SG.your-sendgrid-api-key-here
+MAIL_USERNAME=apikey
+MAIL_PASSWORD=SG.your-sendgrid-api-key-here
+EMAIL_SENDER=noreply@yourdomain.com
+MAIL_DEFAULT_SENDER=noreply@yourdomain.com
+
+RQ_DEFAULT_HOST=redis
+RQ_DEFAULT_PORT=6379
+
+INFOBIP=App your-infobip-app-key-here
+
+# postgresql server in docker 
+DATABASE_URL=postgresql+psycopg2://myadminuser:mysecretpassword@db/user
+BLACKLIST_DATABASE_URL=postgresql+psycopg2://myadminuser:mysecretpassword@db/blacklist
+
+
+# postgresql server in host machine
+# DATABASE_URL=postgresql+psycopg2://username:password@host.docker.internal/user
+# BLACKLIST_DATABASE_URL=postgresql+psycopg2://username:password@host.docker.internal/blacklist
+# DEV_BLACKLIST_DATABASE_URL=sqlite:////Users/seal/Documents/GitHub/short_url_tools/tools/web_scan/url_blacklist/blacklist.db
+
+SHORTENER_HOST=http://shortener_app:8000
+SHORTENER_HOST_NAME=https://yourdomain.com
+
+APP_HOST=https://yourdomain.com
+APP_PATH=/apps
+ASSET_PATH=/apps
+
+NT_SMS_HOST=your-sms-host.com
+NT_SMS_API=/service/SMSWebServiceEngine.php
+NT_SMS_USER=your-sms-username
+NT_SMS_PASS=your-sms-password
+NT_SMS_SENDER=YourSender
+
+TIMEZONE=Asia/Bangkok
+
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_FROM_NUMBER=whatsapp:+1234567890

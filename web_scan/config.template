@@ -1,0 +1,29 @@
+# web_scan/config.env
+
+INTERVAL_HOURS=2
+SLEEP_SECONDS=2
+# DATABASE_PATH=sqlite:////Users/seal/Documents/GitHub/url_shortener/shortener.db
+# postgresql server in docker 
+DATABASE_PATH=postgresql+psycopg2://myadminuser:mysecretpassword@db/shortener
+BLACKLIST_DATABASE_PATH=postgresql+psycopg2://myadminuser:mysecretpassword@db/blacklist
+
+
+# postgresql server in host machine
+# DATABASE_PATH=postgresql+psycopg2://username:password@host.docker.internal:5432/shortener
+# BLACKLIST_DATABASE_PATH=postgresql+psycopg2://username:password@host.docker.internal/blacklist
+
+URLHAUS_API=https://urlhaus-api.abuse.ch/v1/url/
+URLHAUS_AUTH_KEY=your-urlhaus-api-key-here
+
+PHISHTANK_CSV=verified_online.csv
+
+OPENPHISH_FEED_URL=https://raw.githubusercontent.com/openphish/public_feed/refs/heads/main/feed.txt
+OPENPHISH_UPDATE_INTERVAL_HOURS=12
+OPENPHISH_REQUEST_TIMEOUT=30
+
+VIRUSTOTAL_ANALYSIS_URL=https://www.virustotal.com/api/v3/analyses/
+VIRUSTOTAL_URLS_URL=https://www.virustotal.com/api/v3/urls
+VIRUSTOTAL_API_KEY=your-virustotal-api-key-here
+
+HYBRID_ANALYSIS_API_KEY=your-hybrid-analysis-api-key-here
+HYBRID_ANALYSIS_URL=https://www.hybrid-analysis.com/api/v2/quick-scan/url
