@@ -98,7 +98,7 @@ HYBRID_ANALYSIS_API_KEY=your-hybrid-analysis-api-key
 credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-project-744419703652-f520f5308dff.json")
 ```
 
-แล้วเปลี่ยนชื่อเป็นชื่อไฟล์ ```api-project-744419703652-f520f5308dff.json``` เป็นไฟล์ที่ได้จาก Google Cloud Platform 
+แล้วเปลี่ยนชื่อ ```api-project-744419703652-f520f5308dff.json``` เป็นชื่อไฟล์ที่ได้จาก Google Cloud Platform 
 
 ### 3.4 การตั้งค่า SSL Certificate (nginx)
 วางไฟล์ SSL certificate ในโฟลเดอร์ `nginx/certs/`:
