@@ -105,6 +105,18 @@ credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api
 - `fullchain.pem` - Certificate chain
 - `privkey.pem` - Private key
 
+```cmd
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" genrsa -out privkey.pem 2048
+
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" req -new -key privkey.pem -out cert.csr -subj "/C=TH/ST=Bangkok/L=Bangkok/O=Your Company/OU=IT/CN=url.nt.th"
+
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -req -days 365 -in cert.csr -signkey privkey.pem -out fullchain.pem
+
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" rsa -in privkey.pem -check
+
+"C:\Program Files\OpenSSL-Win64\bin\openssl.exe" x509 -in fullchain.pem -text -noout
+```
+
 ## 4. การรัน Docker
 
 ### 4.1 Build และ Start Services
