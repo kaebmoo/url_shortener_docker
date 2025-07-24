@@ -211,8 +211,11 @@ async def capture_screenshot(url: str):
         file_name = f"{parsed_url.netloc}{parsed_url.path.replace('/', '_')}.png"
         # Save the screenshot in the 'static' folder
         # output_path = f"user_management/app/static/screenshots/{file_name}"
+
         output_path = os.path.join(current_app.root_path, "static",
                                    "screenshots", file_name)
+        output_dir = os.path.join(current_app.root_path, "static", "screenshots")
+        os.makedirs(output_dir, exist_ok=True)  # Create the directory if it doesn't exist
 
         # chromium = playwright.chromium
         # browser = await chromium.launch(headless=True)
