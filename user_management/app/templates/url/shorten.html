@@ -64,7 +64,7 @@
 
         function connectWebSocket(secretKey) {
             // const shortenerHost = "{{ shortener_host }}";  // รับค่า shortener_host จาก Flask
-            const shortenerHost = "https://kaebmoo.com";  // รับค่า shortener_host จาก Flask
+            const shortenerHost = "{{ shortener_host_name }}";  // รับค่า shortener_host จาก Flask
 
             const wsUrl = `${shortenerHost}/ws/url_update/${secretKey}`; // สร้าง URL สำหรับ WebSocket
         

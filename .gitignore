@@ -187,3 +187,4 @@ cython_debug/
 web_scan/api-project-744419703652-f520f5308dff.json
 *.json
 *.DS_Store
+/migration

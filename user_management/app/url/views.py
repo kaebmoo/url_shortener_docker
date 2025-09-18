@@ -107,6 +107,7 @@ def shorten_url():
     app_path = current_app.config['APP_PATH']
     app_host_name = current_app.config['APP_HOST']
     shortener_host = current_app.config['SHORTENER_HOST']
+    shortener_host_name = current_app.config['SHORTENER_HOST_NAME']
 
     url_data = None
     message = None  # กำหนดค่าเริ่มต้น
@@ -139,16 +140,16 @@ def shorten_url():
                 url_count_message_en = f"You have created a total of {url_count} URLs"
                 if url_count >= 50 and not current_user.is_vip_or_admin():
                     flash('You have reached the limit of 50 URLs. Please upgrade to VIP Plan for unlimited access.', 'warning')
-                    return render_template('url/shorten.html', form=form, shortener_host=shortener_host, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
+                    return render_template('url/shorten.html', form=form, shortener_host=shortener_host, shortener_host_name=shortener_host_name, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
             else:
                 flash('Failed to retrieve URL count.', 'danger')
-                return render_template('url/shorten.html', form=form, shortener_host=shortener_host, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
+                return render_template('url/shorten.html', form=form, shortener_host=shortener_host, shortener_host_name=shortener_host_name, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
         except requests.exceptions.ConnectionError:
             flash('Failed to connect to the server. Please try again later.', 'error')
-            return render_template('url/shorten.html', form=form, shortener_host=shortener_host, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
+            return render_template('url/shorten.html', form=form, shortener_host=shortener_host, shortener_host_name=shortener_host_name, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
         except requests.exceptions.RequestException as req_err:
             flash(f'An error occurred: {req_err}', 'error')
-            return render_template('url/shorten.html', form=form, shortener_host=shortener_host, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
+            return render_template('url/shorten.html', form=form, shortener_host=shortener_host, shortener_host_name=shortener_host_name, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
 
         data = {
             'target_url': original_url
@@ -198,6 +199,6 @@ def shorten_url():
         ## return redirect(url_for('main.shorten'))
     # persistent_messages = session.get('persistent_messages', [])
     # return render_template('url/shorten.html', form=form, shortener_host=shortener_host, message=message, short_url=short_url, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en)
-    return render_template('url/shorten.html', form=form, shortener_host=shortener_host, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en, api_key=api_key)
+    return render_template('url/shorten.html', form=form, shortener_host=shortener_host, shortener_host_name=shortener_host_name, url_data=url_data, qr_code_base64=qr_code_base64, url_count_message=url_count_message_en, api_key=api_key)
     
     

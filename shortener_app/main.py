@@ -34,6 +34,7 @@ from fastapi.security import (APIKeyHeader, HTTPAuthorizationCredentials,
                               HTTPBearer)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
 from PIL import Image
 from qrcodegen import QrCode
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -504,10 +505,36 @@ def generate_qr_code(data):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return img_str
 
+# @app.get("/")
+# def read_root():
+#     ''' root api '''
+#     return "Welcome to the URL shortener API :)"
+
 @app.get("/")
-def read_root():
-    ''' root api '''
-    return "Welcome to the URL shortener API :)"
+async def root(request: Request):
+    """Smart redirect: Browser users -> /apps, API clients -> JSON info"""
+    accept = request.headers.get("accept", "")
+    
+    # ถ้า Accept header มี text/html (browser) ให้ redirect
+    if "text/html" in accept:
+        return RedirectResponse(url="/apps", status_code=302)
+    
+    # ถ้าเป็น API call ให้ return JSON info
+    return {
+        "service": "URL Shortener API",
+        "version": "1.0",
+        "docs": "/docs", 
+        "web_interface": "/apps",
+        "api_endpoints": {
+            "create_url": "POST /url",
+            "create_guest_url": "POST /url/guest", 
+            "get_url_info": "GET /admin/{secret_key}",
+            "delete_url": "DELETE /admin/{secret_key}",
+            "user_urls": "GET /user/urls",
+            "url_count": "GET /user/url_count"
+        }
+    }
+
 
 @app.get("/about", response_class=HTMLResponse)
 async def read_about(request: Request):
