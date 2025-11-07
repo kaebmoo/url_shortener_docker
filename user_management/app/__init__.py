@@ -40,7 +40,8 @@ def create_app(config):
     app.config['APPLICATION_ROOT'] = '/'
     # app.config['ASSET_URL'] = 'static'
 
-    app.config["REDIS_URL"] = "redis://127.0.0.1"
+    # app.config["REDIS_URL"] = "redis://127.0.0.1"
+    app.config["REDIS_URL"] = app.config.get("REDIS_URL", "redis://redis:6379/0")
     app.register_blueprint(sse, url_prefix='/stream')
 
     # Allow CORS for specific routes
