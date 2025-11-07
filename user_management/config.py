@@ -33,9 +33,10 @@ class Config:
 
     # Email
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.sendgrid.net')
-    MAIL_PORT = os.environ.get('MAIL_PORT', 587)
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', True)
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', False)
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    # Convert string to boolean properly
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
@@ -70,11 +71,15 @@ class Config:
     SHORTENER_HOST_NAME = os.getenv('SHORTENER_HOST_NAME', 'http://localhost')
     ASSET_PATH = os.getenv('ASSET_PATH', '')
 
-    REDIS_URL = os.getenv('REDISTOGO_URL', 'redis://127.0.0.1:6379')
+    # Get Redis URL from environment
+    REDIS_URL = os.environ.get('REDIS_URL', os.environ.get('REDISTOGO_URL', 'redis://127.0.0.1:6379'))
+
+    # flask-rq2 uses RQ_REDIS_URL - must be set before init
+    RQ_REDIS_URL = os.environ.get('REDIS_URL', os.environ.get('REDISTOGO_URL', 'redis://127.0.0.1:6379'))
 
     RAYGUN_APIKEY = os.environ.get('RAYGUN_APIKEY')
 
-    # Parse the REDIS_URL to set RQ config variables
+    # Parse Redis URL for RQ config variables
     if PYTHON_VERSION == 3:
         urllib.parse.uses_netloc.append('redis')
         url = urllib.parse.urlparse(REDIS_URL)
@@ -82,10 +87,11 @@ class Config:
         urlparse.uses_netloc.append('redis')
         url = urlparse.urlparse(REDIS_URL)
 
-    RQ_DEFAULT_HOST = url.hostname
-    RQ_DEFAULT_PORT = url.port
-    RQ_DEFAULT_PASSWORD = url.password
-    RQ_DEFAULT_DB = 0
+    # Use values from environment if set, otherwise use parsed values
+    RQ_DEFAULT_HOST = os.environ.get('RQ_DEFAULT_HOST', url.hostname)
+    RQ_DEFAULT_PORT = int(os.environ.get('RQ_DEFAULT_PORT', url.port or 6379))
+    RQ_DEFAULT_PASSWORD = os.environ.get('RQ_DEFAULT_PASSWORD', url.password)
+    RQ_DEFAULT_DB = int(os.environ.get('RQ_DEFAULT_DB', 0))
 
     @staticmethod
     def init_app(app):

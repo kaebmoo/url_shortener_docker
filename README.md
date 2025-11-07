@@ -63,6 +63,13 @@ MAIL_DEFAULT_SENDER=noreply@yourdomain.com
 DATABASE_URL=postgresql+psycopg2://myadminuser:mysecretpassword@db/user
 BLACKLIST_DATABASE_URL=postgresql+psycopg2://myadminuser:mysecretpassword@db/blacklist
 
+REDISTOGO_URL=redis://redis:6379/0
+# optional mirror
+REDIS_URL=redis://redis:6379/0
+
+RQ_DEFAULT_HOST=redis
+RQ_DEFAULT_PORT=6379
+
 # การตั้งค่า App
 SHORTENER_HOST=http://shortener_app:8000
 SHORTENER_HOST_NAME=https://url.nt.th

@@ -20,7 +20,7 @@ from rq import Queue
 from flask_sqlalchemy import SQLAlchemy
 from flask_sse import sse
 
-from app import db
+from app import db, rq as flask_rq
 from app.admin.forms import (
     ChangeAccountTypeForm,
     ChangeUserEmailForm,
@@ -41,11 +41,9 @@ import time
 
 admin = Blueprint('admin', __name__)
 
-from redis import Redis
-# Create a Redis connection (adjust the parameters accordingly)
-redis_connection = Redis(host='127.0.0.1', port=6379, db=0)
-# Create a queue using the Redis connection
-queue = Queue(connection=redis_connection)
+# Use flask-rq2's get_queue which handles Redis connection properly
+def get_queue():
+    return flask_rq.get_queue()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -305,7 +303,7 @@ def invite_user():
             user_id=user.id,
             token=token,
             _external=True)
-        queue.enqueue(
+        get_queue().enqueue(
             send_email,
             recipient=user.email,
             subject='You Are Invited To Join',

@@ -7,7 +7,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from rq import Queue
 # from flask_rq import get_queue <-- deprecated
 
-from app import db
+from app import db, rq as flask_rq
 from app.account.forms import (
     ChangeEmailForm, ChangePhoneForm, ChangePasswordForm, 
     CreatePasswordForm, LoginForm, RegistrationFormSelect, 
@@ -28,19 +28,11 @@ import uuid
 from email_validator import validate_email, EmailNotValidError
 import phonenumbers
 
-from redis import Redis
-
 account = Blueprint('account', __name__)
 
-# Create a Redis connection (adjust the parameters accordingly) RQ_DEFAULT_HOST RQ_DEFAULT_PORT
-redis_connection = Redis(host='127.0.0.1', port=6379, db=0)
-
-# Create a queue using the Redis connection
-queue = Queue(connection=redis_connection)
-# Configure the connection to the queue (e.g., Redis)
-## queue = Queue(connection='redis://localhost:6379')  # Replace with your actual connection details
-
-# get_queue() is deprecated use queue instead.
+# Use flask-rq2's get_queue which handles Redis connection properly
+def get_queue():
+    return flask_rq.get_queue()
 
 # Create an instance of OTPService
 otp_service = OTPService()
@@ -99,7 +91,7 @@ def register_email():
         token = user.generate_confirmation_token()
         confirm_link = url_for('account.confirm', token=token, _external=True)
 
-        queue.enqueue(
+        get_queue().enqueue(
             send_email,
             recipient=user.email,
             subject='Confirm Your Account',
@@ -135,7 +127,7 @@ def register_phone():
         # otp = generate_otp()
         # Generate OTP using OTPService
         otp = otp_service.generate_otp(form.phone_number.data, expiration=90)
-        queue.enqueue(send_otp, phone_number=form.phone_number.data, otp=otp) # send_otp(phone_number, otp)
+        get_queue().enqueue(send_otp, phone_number=form.phone_number.data, otp=otp) # send_otp(phone_number, otp)
 
         # Store the phone number in session to identify the user in the next step
         session['phone_number'] = form.phone_number.data
@@ -186,7 +178,7 @@ def reset_password_request():
             token = user.generate_password_reset_token()
             reset_link = url_for(
                 'account.reset_password', token=token, _external=True)
-            queue.enqueue(
+            get_queue().enqueue(
                 send_email,
                 recipient=user.email,
                 subject='Reset Your Password',
@@ -256,7 +248,7 @@ def change_email_request():
             token = current_user.generate_email_change_token(new_email)
             change_email_link = url_for(
                 'account.change_email', token=token, _external=True)
-            queue.enqueue(
+            get_queue().enqueue(
                 send_email,
                 recipient=new_email,
                 subject='Confirm Your New Email',
@@ -289,7 +281,7 @@ def change_phone_request():
             otp = otp_service.generate_otp(new_phone, expiration=90)
 
             session['otp'] = otp
-            queue.enqueue(send_otp, phone_number=new_phone, otp=otp)
+            get_queue().enqueue(send_otp, phone_number=new_phone, otp=otp)
             
             flash(f'A confirmation OTP has been sent to {new_phone}.','warning')
             return redirect(url_for('account.confirm_phone_change'))
@@ -314,7 +306,7 @@ def confirm_request():
     """Respond to new user's request to confirm their account."""
     token = current_user.generate_confirmation_token()
     confirm_link = url_for('account.confirm', token=token, _external=True)
-    queue.enqueue(
+    get_queue().enqueue(
         send_email,
         recipient=current_user.email,
         subject='Confirm Your Account',
@@ -340,7 +332,7 @@ def otp_request():
     otp = otp_service.generate_otp(phone_number, expiration=90)
 
     # Enqueue sending the OTP via SMS
-    queue.enqueue(send_otp, phone_number=phone_number, otp=otp)
+    get_queue().enqueue(send_otp, phone_number=phone_number, otp=otp)
 
     flash(f'A new otp has been sent to {phone_number}.', 'warning')
     
@@ -486,7 +478,7 @@ def join_from_invite(user_id, token):
             user_id=user_id,
             token=token,
             _external=True)
-        queue.enqueue(
+        get_queue().enqueue(
             send_email,
             recipient=new_user.email,
             subject='You Are Invited To Join',
