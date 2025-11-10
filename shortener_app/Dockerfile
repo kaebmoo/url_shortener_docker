@@ -1,7 +1,10 @@
 # ใช้ Python 3.9-slim เป็น base image
 FROM python:3.10-slim
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# ติดตั้ง curl และ system dependencies ที่ Playwright ต้องการ
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # ตั้งค่า Working Directory ภายใน Container
 WORKDIR /app
@@ -11,6 +14,9 @@ COPY requirements.txt .
 
 # ติดตั้ง dependencies และ gunicorn
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
+
+# ติดตั้ง Playwright browsers และ system dependencies
+RUN playwright install --with-deps firefox
 
 # คัดลอกโค้ดทั้งหมด
 COPY . .
