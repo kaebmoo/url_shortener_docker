@@ -662,13 +662,15 @@ async def preview_url(
     })
 
 async def call_preview_url_async(url: str, token: str, heading_text_h1: str = None, heading_text_h3: str = None):
-    ''' asynchonous call preview url 
+    ''' asynchonous call preview url
         args:
             a) url
             b) heading text h1, h3 [option]
     '''
-    base_url = get_settings().base_url
-    preview_url_route = base_url + "/preview_url"
+    # Use internal URL when running in Docker, external URL otherwise
+    settings = get_settings()
+    internal_base_url = f"http://localhost:{settings.port}"
+    preview_url_route = internal_base_url + "/preview_url"
     retries = 3
     async with httpx.AsyncClient(timeout=60.0) as client:
         for _ in range(retries):
