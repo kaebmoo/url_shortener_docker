@@ -1,158 +1,109 @@
-# email_service.py
+import os
 import smtplib
 import ssl
+import logging
+import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
-import os
-import logging
-import traceback
 
+from flask import render_template, current_app
+from app import create_app
+
+# ตั้งค่า logger สำหรับไฟล์นี้โดยเฉพาะ
 logger = logging.getLogger(__name__)
 
-class EmailService:
-    """Email service using SMTP SSL"""
+def send_email(recipient, subject, template, **kwargs):
+    """
+    ส่งอีเมลโดยใช้ smtplib.SMTP_SSL (จาก logic ที่ใช้ได้ผล)
+    แต่ยังคง interface เดิมที่รับ template และ kwargs
+    และยังคงสร้าง app_context เพื่อให้ทำงานใน Queue ได้
+    """
     
-    def __init__(self):
-        self.smtp_server = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-        self.port = int(os.environ.get('MAIL_PORT', 465))
-        
-        # ✅ แก้ไข: กำหนดค่าเริ่มต้นเป็นสตริงว่าง '' เพื่อให้เป็น str เสมอ
-        self.sender_email = os.environ.get('MAIL_USERNAME', '')
-        self.sender_password = os.environ.get('MAIL_PASSWORD', '')
-        self.sender_name = os.environ.get('MAIL_FROM_NAME', 'Meeting Registration System')
-        self.sender_from_address = os.environ.get('MAIL_FROM', self.sender_email)
-
-        # เพิ่มการตรวจสอบว่ามีการตั้งค่าที่จำเป็นหรือไม่
-        if not self.sender_email or not self.sender_password:
-            logger.critical("CRITICAL: MAIL_USERNAME and MAIL_PASSWORD must be set in environment variables.")
-        
-    def send_otp_email(self, recipient_email: str, recipient_name: str, otp: str, purpose: str = 'login'):
-        """Send OTP email with proper encoding"""
-        
-        # ตรวจสอบค่า config ก่อนส่ง
-        if not self.sender_email or not self.sender_password:
-            logger.error("Cannot send email because sender credentials are not configured.")
-            return False
-
+    # สร้าง app context เพื่อให้ render_template และ current_app.config ใช้งานได้
+    app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+    
+    with app.app_context():
         try:
+            # 1. ดึงค่า Config จาก app.config
+            smtp_server = current_app.config.get('MAIL_SERVER')
+            smtp_port = int(current_app.config.get('MAIL_PORT', 465))
+            mail_username = current_app.config.get('MAIL_USERNAME')
+            mail_password = current_app.config.get('MAIL_PASSWORD')
+            subject_prefix = current_app.config.get('EMAIL_SUBJECT_PREFIX', '')
+            
+            # --- START: ส่วนที่แก้ไข ---
+            
+            # 2. ดึงค่าผู้ส่ง พร้อม Fallback ที่ปลอดภัย
+            
+            # Fallback for sender_name: MAIL_FROM_NAME -> APP_NAME -> 'App Admin'
+            sender_name = current_app.config.get('MAIL_FROM_NAME')
+            if not sender_name:
+                sender_name = current_app.config.get('APP_NAME', 'App Admin')
+
+            # Fallback for sender_address: MAIL_FROM -> MAIL_USERNAME
+            sender_address = current_app.config.get('MAIL_FROM')
+            if not sender_address:
+                sender_address = mail_username # ซึ่ง mail_username อาจจะเป็น None
+
+            # 3. [สำคัญ] ตรวจสอบค่า Config ก่อนส่ง
+            if not smtp_server or not mail_username or not mail_password:
+                logger.error("Email server (SMTP) is not configured. Missing MAIL_SERVER, MAIL_USERNAME, or MAIL_PASSWORD.")
+                return False
+                
+            if not sender_address:
+                logger.error("Email send failed: 'MAIL_FROM' or 'MAIL_USERNAME' must be set in config.")
+                # หยุดการทำงานก่อนที่จะไป formataddr (จุดที่เกิด error)
+                return False
+
+            # --- END: ส่วนที่แก้ไข ---
+
+            # 4. สร้างเนื้อหาอีเมล (เหมือนเดิม)
+            text_content = render_template(template + '.txt', **kwargs)
+            html_content = render_template(template + '.html', **kwargs)
+
+            # 5. สร้างข้อความอีเมล (MIMEMultipart)
             message = MIMEMultipart('alternative')
             
-            if purpose == 'register':
-                subject = "ยืนยัน Email - ระบบลงทะเบียนการประชุม"
-            else:
-                subject = "เข้าสู่ระบบ - รหัส OTP"
+            full_subject = f"{subject_prefix} {subject}".strip()
+            message["Subject"] = str(Header(full_subject, 'utf-8'))
             
-            # ✅ แก้ไข: แปลง Header object เป็น string ด้วย str() เพื่อให้ Type Checker พอใจ
-            message["Subject"] = str(Header(subject, 'utf-8'))
+            # ณ จุดนี้ sender_address จะไม่เป็น None แล้ว
+            message["From"] = formataddr((sender_name, sender_address))
             
-            # ✅ แก้ไข: ไม่ต้อง .encode() ที่ Header เพราะ formataddr จะจัดการให้เอง
-            # และมั่นใจแล้วว่า self.sender_email เป็น str
-            message["From"] = formataddr((self.sender_name, self.sender_from_address))
-            message["To"] = formataddr((recipient_name or recipient_email, recipient_email))
+            recipient_name = None
+            if 'user' in kwargs and hasattr(kwargs['user'], 'name'):
+                recipient_name = kwargs['user'].name
+            elif 'user' in kwargs and hasattr(kwargs['user'], 'username'):
+                recipient_name = kwargs['user'].username
             
-            # Plain text version
-            text_content = f"""
-สวัสดี {recipient_name or 'คุณ'},
+            message["To"] = formataddr((recipient_name or recipient, recipient))
 
-รหัส OTP ของคุณคือ: {otp}
-
-รหัสนี้จะหมดอายุใน 10 นาที
-กรุณาอย่าแชร์รหัสนี้กับผู้อื่น
-
-ขอบคุณ,
-ระบบลงทะเบียนการประชุม
-            """
-            
-            # HTML version
-            html_content = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {{ font-family: 'Sarabun', Arial, sans-serif; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background-color: #2185d0; color: white; padding: 20px; text-align: center; border-radius: 5px; }}
-        .content {{ padding: 20px; background-color: #f9f9f9; }}
-        .otp-code {{ 
-            font-size: 32px; 
-            font-weight: bold; 
-            color: #2185d0; 
-            text-align: center; 
-            padding: 20px;
-            background-color: white;
-            border: 2px dashed #2185d0;
-            margin: 20px 0;
-            letter-spacing: 5px;
-            border-radius: 5px;
-        }}
-        .footer {{ text-align: center; padding: 10px; color: #666; font-size: 12px; }}
-        .warning {{ color: #ff6b6b; font-weight: bold; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>{'ยืนยัน Email' if purpose == 'register' else 'เข้าสู่ระบบ'}</h2>
-        </div>
-        <div class="content">
-            <p>สวัสดี <strong>{recipient_name or 'คุณ'}</strong>,</p>
-            <p>รหัส OTP ของคุณคือ:</p>
-            <div class="otp-code">{otp}</div>
-            <p>⏱️ <span class="warning">รหัสนี้จะหมดอายุใน 10 นาที</span></p>
-            <p>🔒 กรุณาอย่าแชร์รหัสนี้กับผู้อื่น</p>
-        </div>
-        <div class="footer">
-            <p>ขอบคุณที่ใช้บริการ<br>ระบบลงทะเบียนการประชุม</p>
-            <p>อีเมลนี้ส่งถึง: {recipient_email}</p>
-        </div>
-    </div>
-</body>
-</html>
-            """
-            
             part1 = MIMEText(text_content, 'plain', 'utf-8')
             part2 = MIMEText(html_content, 'html', 'utf-8')
             
             message.attach(part1)
             message.attach(part2)
-            
+
+            # 6. ส่งอีเมล (เหมือนเดิม)
             context = ssl.create_default_context()
             
-            with smtplib.SMTP_SSL(self.smtp_server, self.port, context=context) as server:
-                server.login(self.sender_email, self.sender_password)
+            with smtplib.SMTP_SSL(smtp_server, smtp_port, context=context) as server:
+                server.login(mail_username, mail_password)
                 server.send_message(message)
                 
-            logger.info(f"✅ OTP email sent to: {recipient_email}")
+            logger.info(f"✅ Email '{subject}' sent successfully to: {recipient} via smtplib")
             return True
-            
+
         except smtplib.SMTPAuthenticationError as e:
-            logger.error(f"❌ SMTP Authentication failed. Check MAIL_USERNAME and MAIL_PASSWORD. Error: {str(e)}")
+            logger.error(f"❌ SMTP Authentication failed. Check MAIL_USERNAME/MAIL_PASSWORD. Error: {str(e)}")
             return False
         except smtplib.SMTPException as e:
-            logger.error(f"❌ SMTP error for {recipient_email}: {str(e)}")
+            logger.error(f"❌ SMTP error for {recipient}: {str(e)}")
             return False
         except Exception as e:
-            logger.error(f"❌ Failed to send email to {recipient_email}: {str(e)}")
+            logger.error(f"❌ Failed to send email to {recipient}: {str(e)}")
             logger.error(f"Error type: {type(e).__name__}")
             logger.error(f"Traceback: {traceback.format_exc()}")
-            return False
-
-    def test_connection(self):
-        """Test SMTP connection"""
-        if not self.sender_email or not self.sender_password:
-            logger.error("Cannot test connection because sender credentials are not configured.")
-            return False
-            
-        try:
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(self.smtp_server, self.port, context=context) as server:
-                server.ehlo()
-                server.login(self.sender_email, self.sender_password)
-                logger.info("✅ SMTP connection successful")
-                return True
-        except Exception as e:
-            logger.error(f"❌ SMTP connection failed: {str(e)}")
             return False
