@@ -31,6 +31,9 @@ class Config:
     # FastAPI
     SHORTENER_HOST = os.environ.get('SHORTENER_HOST', 'http://127.0.0.1:8000')
 
+    # Email - เลือก provider
+    MAIL_PROVIDER = os.environ.get('MAIL_PROVIDER', 'smtp') 
+
     # Email
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.sendgrid.net')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 465)) # เปลี่ยน default เป็น 465 สำหรับ SMTP_SSL
@@ -39,10 +42,15 @@ class Config:
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+    # Email - Mailgun Configuration (ใหม่)
+    MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY')
+    MAILGUN_DOMAIN = os.environ.get('MAILGUN_DOMAIN')
+    MAILGUN_API_URL = os.environ.get('MAILGUN_API_URL', 'https://api.mailgun.net/v3')
+
     # เพิ่ม 2 บรรทัดนี้ เพื่อให้ email.py ใหม่ดึงไปใช้ได้
     MAIL_FROM_NAME = os.environ.get('MAIL_FROM_NAME')
     MAIL_FROM = os.environ.get('MAIL_FROM')
-
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
     # EMAIL_SENDER=os.environ.get('EMAIL_SENDER')
 

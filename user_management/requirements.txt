@@ -29,5 +29,6 @@ raygun4py
 redis==5.0.4
 redis-py-cluster
 rq==1.16.2
+requests
 WTForms-SQLAlchemy
 yapf
