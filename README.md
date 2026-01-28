@@ -341,5 +341,7 @@ We are committed to providing you with the best experience and ensuring your nee
 ---
 
 **Created by:** URL Shortener Docker Project
+
 **GitHub:** https://github.com/kaebmoo/url_shortener_docker
+
 **Funded by:** National Telecom (2024)
