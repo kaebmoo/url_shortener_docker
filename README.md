@@ -3,6 +3,25 @@ URL Shortener Docker Setup Guide
 
 ระบบย่อ URL ที่ใช้ Docker สำหรับการ deploy ง่ายๆ พร้อมด้วยระบบจัดการผู้ใช้และการสแกน URL
 
+## About
+
+### Introduction
+
+The URL Shortener project is a versatile tool designed to convert long URLs into shorter, more manageable links. It aims to provide users with a seamless experience in managing and sharing URLs, whether for personal use or business needs. The project emphasizes simplicity, security, and efficiency, making it an ideal solution for anyone looking to streamline their online presence.
+
+### Features
+
+- **URL Shortening**: Converts long URLs into short, easy-to-share links
+- **QR Code Generation**: Generates QR codes for shortened URLs, which can be displayed on the screen or downloaded as base64 images
+- **API Access**: Provides a FastAPI-based API for programmatic access to URL shortening features
+- **URL Safety Check**: Automatically checks the destination URL for security risks, such as malware or phishing, and warns users to ensure safe access through the short URL
+- **User Management**: Complete user authentication and management system
+- **Docker Deployment**: Easy deployment using Docker containers
+
+### Funding
+
+This project received funding from National Telecom in 2024, which has been instrumental in supporting its development and implementation.
+
 ## 1. การดาวน์โหลด Source Code จาก GitHub
 
 ```bash
@@ -260,5 +279,67 @@ docker-compose exec user_management flask db upgrade
 
 ---
 
-สร้างโดย: URL Shortener Docker Project
-GitHub: https://github.com/kaebmoo/url_shortener_docker
+## License
+
+This project is released under a **Dual License** model:
+
+### 1. Open Source License (AGPL-3.0)
+
+For non-commercial use, personal projects, educational purposes, and open-source contributions, this project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+**Key requirements of AGPL-3.0:**
+- If you use this software to provide a network service (e.g., SaaS, web service), you **must** make the complete source code available to users
+- Any modifications must also be released under AGPL-3.0
+- This ensures the software remains open and free for the community
+
+See the [LICENSE](https://github.com/kaebmoo/url_shortener_docker?tab=GPL-3.0-1-ov-file#readme) file for details.
+
+### 2. Commercial License
+
+For commercial use or revenue-generating purposes where you **do not want to disclose your source code**, a separate commercial license is required.
+
+**Commercial users must obtain a paid license from:**
+- The project developers
+- **National Telecom** (the funding organization)
+
+**What requires a commercial license:**
+- Using this software as part of a commercial product or service without open-sourcing your code
+- Deploying this software for business operations that generate revenue
+- Integrating this software into paid services or applications
+- Providing this software as a SaaS/web service without releasing your source code
+
+**Benefits of a commercial license:**
+- ✅ No obligation to open-source your code
+- ✅ Priority support
+- ✅ Custom feature development available
+- ✅ Legal protection and compliance
+
+**To obtain a commercial license**, please contact us at **kaebmoo@gmail.com**
+
+### Summary
+
+| Use Case | License Required | Cost |
+|----------|-----------------|------|
+| Personal, educational, open-source projects | AGPL-3.0 | Free |
+| Commercial use + willing to open-source under AGPL-3.0 | AGPL-3.0 | Free |
+| Commercial use + want to keep code proprietary | Commercial License | Paid |
+
+## Contact Us
+
+If you have any questions, feedback, or need assistance with the URL Shortener project, our team is here to help.
+
+**For commercial licensing inquiries:**
+- Email: kaebmoo@gmail.com
+- Include details about your intended use case
+
+**For general questions and support:**
+- GitHub Issues: https://github.com/kaebmoo/url_shortener_docker/issues
+- Email: kaebmoo@gmail.com
+
+We are committed to providing you with the best experience and ensuring your needs are met. We look forward to hearing from you!
+
+---
+
+**Created by:** URL Shortener Docker Project
+**GitHub:** https://github.com/kaebmoo/url_shortener_docker
+**Funded by:** National Telecom (2024)

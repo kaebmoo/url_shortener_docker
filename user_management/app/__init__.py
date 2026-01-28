@@ -59,6 +59,15 @@ def create_app(config):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # not using sqlalchemy event system, hence disabling it
 
+    # Database connection pool settings
+    # ป้องกัน connection timeout และ stale connection issues
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # ตรวจสอบ connection ก่อนใช้งาน ป้องกัน stale connection
+        'pool_recycle': 300,    # recycle connection ทุก 5 นาที (300 วินาที)
+        'pool_size': 10,        # จำนวน connection ใน pool
+        'max_overflow': 20      # จำนวน connection เพิ่มเติมเมื่อ pool เต็ม
+    }
+
     Config[config_name].init_app(app)
 
     # Set up extensions
